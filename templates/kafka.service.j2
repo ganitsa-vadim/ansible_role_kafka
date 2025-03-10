@@ -1,0 +1,19 @@
+[Unit]
+Description=Kafka
+After=network.target
+
+[Service]
+User=kafka
+Group=kafka
+
+WorkingDirectory=/usr/local/share/kafka
+
+ExecStart=/usr/local/share/kafka/bin/kafka-server-start.sh /etc/kafka/server.properties
+
+Restart=on-failure
+RestartSec=10
+
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
