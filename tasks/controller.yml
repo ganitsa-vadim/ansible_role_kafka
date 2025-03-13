@@ -1,0 +1,57 @@
+---
+- name: Create kafka controller logs dir
+  ansible.builtin.file:
+    path: "{{ kafka_controller_logs_dir }}"
+    state: directory
+    mode: '0750'
+    owner: kafka
+    group: kafka
+
+- name: Deploy Kafka controller confiration file
+  template:
+    src: controller.properties.j2
+    dest: /etc/kafka/controller.properties
+    owner: root
+    group: kafka
+    mode: '0640'
+  notify: restart kafka controller
+
+- name: Deploy systemd unit file
+  template:
+    src: kafka-controller.service.j2
+    dest: /etc/systemd/system/kafka-controller.service
+  notify: restart kafka controller
+
+- name: check if kraft logs dir has been initialized
+  shell: "{{ kafka_home_dir }}/bin/kafka-storage.sh info -c {{ kafka_controller_config_path }}"
+  register: storage_init_controller
+  ignore_errors: yes
+
+- name: Print return information from the previous task
+  ansible.builtin.debug:
+    var: storage_init_controller
+    verbosity: 2
+
+- name: Format Kafka controller storage with generated cluster ID
+  command: "{{ kafka_home_dir }}/bin/kafka-storage.sh format -t {{ kafka_cluster_id }} -c {{ kafka_controller_config_path }}"
+  notify: restart kafka controller
+  when: '"is not formatted" in storage_init_controller.stdout'
+
+- name: Ensure kafka-controller-logs and its contents have correct permissions
+  ansible.builtin.file:
+    path: "{{ kafka_controller_logs_dir }}"
+    state: directory
+    mode: '0750'
+    owner: kafka
+    group: kafka
+    recurse: yes
+
+- name: Just force systemd to reread configs
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: start controller
+  ansible.builtin.systemd_service:
+    name: kafka-controller.service
+    state: started
+    enabled: true

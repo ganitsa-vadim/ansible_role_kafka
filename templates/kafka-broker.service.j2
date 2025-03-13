@@ -1,14 +1,14 @@
 [Unit]
-Description=Kafka
+Description=Kafka broker
 After=network.target
 
 [Service]
 User=kafka
 Group=kafka
 
-WorkingDirectory=/usr/local/share/kafka
+WorkingDirectory={{ kafka_home_dir }}
 
-ExecStart=/usr/local/share/kafka/bin/kafka-server-start.sh /etc/kafka/server.properties
+ExecStart={{ kafka_home_dir }}/bin/kafka-server-start.sh {{ kafka_broker_config_path }}
 
 Restart=on-failure
 RestartSec=10

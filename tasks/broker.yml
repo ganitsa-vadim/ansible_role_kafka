@@ -1,0 +1,56 @@
+- name: Create kafka broker logs dir
+  ansible.builtin.file:
+    path: "{{ kafka_broker_logs_dir }}"
+    state: directory
+    mode: '0750'
+    owner: kafka
+    group: kafka
+
+- name: Deploy Kafka broker confiration file
+  template:
+    src: broker.properties.j2
+    dest: "{{ kafka_broker_config_path }}"
+    owner: root
+    group: kafka
+    mode: '0640'
+  notify: restart kafka broker
+
+- name: Deploy systemd unit file
+  template:
+    src: kafka-broker.service.j2
+    dest: /etc/systemd/system/kafka-broker.service
+  notify: restart kafka broker
+
+- name: check if kraft logs dir has been initialized
+  shell: "{{ kafka_home_dir }}/bin/kafka-storage.sh info -c {{ kafka_broker_config_path }}"
+  register: storage_init_broker
+  ignore_errors: yes
+
+- name: Print return information from the previous task
+  ansible.builtin.debug:
+    var: storage_init_broker
+    verbosity: 2
+
+- name: Format Kafka broker storage with generated cluster ID
+  command: "{{ kafka_home_dir }}/bin/kafka-storage.sh format -t {{ kafka_cluster_id }} -c {{ kafka_broker_config_path }}"
+  notify: restart kafka broker
+  when: '"is not formatted" in storage_init_broker.stdout'
+
+- name: Ensure kafka-broker-logs and its contents have correct permissions
+  ansible.builtin.file:
+    path: "{{ kafka_broker_logs_dir }}"
+    state: directory
+    mode: '0750'
+    owner: kafka
+    group: kafka
+    recurse: yes
+
+- name: Just force systemd to reread configs
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: start broker
+  ansible.builtin.systemd_service:
+    name: kafka-broker.service
+    state: started
+    enabled: true

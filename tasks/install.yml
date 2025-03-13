@@ -1,0 +1,54 @@
+---
+# TODO task only for molecule, move it to molecule config
+- name: Создать директорию /usr/share/man/man1 (если отсутствует)
+  file:
+    path: /usr/share/man/man1
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Install java17
+  ansible.builtin.apt:
+    name: default-jre
+    state: present
+    update_cache: yes
+
+- name: Ensure group "kafka" exists
+  ansible.builtin.group:
+    name: kafka
+    state: present
+
+- name: Create kafka user
+  ansible.builtin.user:
+    name: kafka
+    group: kafka
+    shell: /usr/sbin/nologin
+    system: yes
+    state: present
+
+- name: Create a kafka_home_dir
+  ansible.builtin.file:
+    path: "{{ kafka_home_dir }}"
+    state: directory
+    mode: '0750'
+    owner: kafka
+    group: kafka
+
+- name: Create a directory /etc/kafka
+  ansible.builtin.file:
+    path: /etc/kafka
+    state: directory
+
+- name: Download kafka tgz
+  get_url:
+    url: "https://dlcdn.apache.org/kafka/3.9.0/kafka_2.13-3.9.0.tgz"
+    dest: "/tmp/kafka_2.13-3.9.0.tgz"
+
+- name: Extract Kafka tarball with strip-components
+  unarchive:
+    src: /tmp/kafka_2.13-3.9.0.tgz
+    dest: "{{ kafka_home_dir }}"
+    remote_src: yes
+    extra_opts: 
+      - --strip-components=1
+  become: yes

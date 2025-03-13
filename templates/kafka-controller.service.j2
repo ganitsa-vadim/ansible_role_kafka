@@ -1,0 +1,19 @@
+[Unit]
+Description=Kafka controller
+After=network.target
+
+[Service]
+User=kafka
+Group=kafka
+
+WorkingDirectory={{ kafka_home_dir }}
+
+ExecStart={{ kafka_home_dir }}/bin/kafka-server-start.sh /etc/kafka/controller.properties
+
+Restart=on-failure
+RestartSec=10
+
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
