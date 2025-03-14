@@ -1,12 +1,4 @@
 ---
-# TODO task only for molecule, move it to molecule config
-- name: Создать директорию /usr/share/man/man1 (если отсутствует)
-  file:
-    path: /usr/share/man/man1
-    state: directory
-    mode: '0755'
-  become: yes
-
 - name: Install java17
   ansible.builtin.apt:
     name: default-jre
@@ -15,13 +7,13 @@
 
 - name: Ensure group "kafka" exists
   ansible.builtin.group:
-    name: kafka
+    name: "{{ kafka_group }}"
     state: present
 
 - name: Create kafka user
   ansible.builtin.user:
-    name: kafka
-    group: kafka
+    name: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
     shell: /usr/sbin/nologin
     system: yes
     state: present
@@ -31,12 +23,12 @@
     path: "{{ kafka_home_dir }}"
     state: directory
     mode: '0750'
-    owner: kafka
-    group: kafka
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
 
-- name: Create a directory /etc/kafka
+- name: Create a directory kafka_config_dir
   ansible.builtin.file:
-    path: /etc/kafka
+    path: "{{ kafka_config_dir }}"
     state: directory
 
 - name: Download kafka tgz

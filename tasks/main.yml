@@ -2,8 +2,11 @@
 - name: Install java and download kafka
   import_tasks: install.yml
 
+- name: Install and start kafka controller
+  import_tasks: controller.yml
+
 - name: Install and start kafka broker
   import_tasks: broker.yml
 
-- name: Install and start kafka controller
-  import_tasks: controller.yml
+- name: Create and configure topics
+  import_tasks: topics.yml

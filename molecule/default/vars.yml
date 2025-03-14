@@ -1,0 +1,16 @@
+molecule_podman_network: kafka-network
+
+
+kafka_cluster_id: AF7kASNnQQyKEQgvrr_HVAddd
+kafka_controller_quorum_voters: 
+  - 3001@kafka01:9093
+  - 3002@kafka02:9093
+  - 3003@kafka03:9093
+
+kafka_topics:
+  - name: 'test'
+    partitions: '3'
+    replicas: '1'
+  - name: 'test2'
+    partitions: '3'
+    replicas: '1'

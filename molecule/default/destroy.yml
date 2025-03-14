@@ -17,8 +17,15 @@
 - name: Remove dynamic molecule inventory
   hosts: localhost
   gather_facts: false
+  vars_files:
+    - vars.yml  
   tasks:
     - name: Remove dynamic inventory file
       ansible.builtin.file:
         path: "{{ molecule_ephemeral_directory }}/inventory/molecule_inventory.yml"
+        state: absent
+    
+    - name: Remove podman network
+      containers.podman.podman_network:
+        name: "{{ molecule_podman_network }}"
         state: absent

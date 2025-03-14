@@ -3,15 +3,15 @@
     path: "{{ kafka_broker_logs_dir }}"
     state: directory
     mode: '0750'
-    owner: kafka
-    group: kafka
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
 
 - name: Deploy Kafka broker confiration file
   template:
     src: broker.properties.j2
     dest: "{{ kafka_broker_config_path }}"
-    owner: root
-    group: kafka
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
     mode: '0640'
   notify: restart kafka broker
 
@@ -41,8 +41,8 @@
     path: "{{ kafka_broker_logs_dir }}"
     state: directory
     mode: '0750'
-    owner: kafka
-    group: kafka
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
     recurse: yes
 
 - name: Just force systemd to reread configs
@@ -54,3 +54,11 @@
     name: kafka-broker.service
     state: started
     enabled: true
+
+- name: kafka broker | Wait for service listening
+  ansible.builtin.wait_for:
+    host: "0.0.0.0"
+    port: "9092"
+    state: "started"
+    delay: 5
+    timeout: 300

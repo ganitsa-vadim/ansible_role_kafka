@@ -1,16 +1,13 @@
 ---
-kafka_cluster_id: AF7kASNnQQyKEQgvrr_HVA
-kafka_bootstrap_servers_host: 
-  - 192.168.0.202:9093
-  - 192.168.0.203:9093
-  - 192.168.0.204:9093
+# kafka_cluster_id: AF7kASNnQQyKEQgvrr_HVA
 kafka_controller_quorum_voters: 
-  - 3001@192.168.0.202:9093
-  - 3002@192.168.0.203:9093
-  - 3003@192.168.0.204:9093
-# kafka_node_ip: set in inventory yaml
-# kafka_controller_node_id: set in inventory yaml
-# kafka_broker_node_id: set in inventory yaml
+  - 3001@kafka01:9093
+  # - 3002@kafka02:9093
+  # - 3003@kafka03:9093
+
+# kafka_node_ip: set in host vars
+# kafka_controller_node_id: set in host vars
+# kafka_broker_node_id: set in host vars
 
 kafka_controller_logs_dir: /usr/local/share/kafka/controller-logs
 kafka_controller_config_path: /etc/kafka/controller.properties
@@ -23,3 +20,16 @@ kafka_offsets_topic_replication_factor: 2
 kafka_transaction_state_log_replication_factor: 2
 
 kafka_home_dir: /usr/local/share/kafka
+
+kafka_user: kafka
+kafka_group: kafka
+
+kafka_config_dir: /etc/kafka
+
+kafka_topics: []
+
+kafka_topics_config: []
+
+kafka_not_removable_topics: ['KSTREAM-AGGREGATE-STATE-STORE']
+
+kafka_filter_function_not_removable_topic: "lambda k: not k.startswith('__'){{ kafka_not_removable_topics | map('regex_replace', '^(.*)$', ' and \"\\1\" not in k') | list | join('') }}"

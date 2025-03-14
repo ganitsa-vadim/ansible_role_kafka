@@ -1,0 +1,3 @@
+molecule/inventory
+filter_plugins/__pycache__
+.venv

@@ -1,3 +1,2 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# vars file for my_role
+kafka_filter_function_not_removable_topic: "lambda k: not k.startswith('__'){{ kafka_not_removable_topics | map('regex_replace', '^(.*)$', ' and \"\\1\" not in k') | list | join('') }}"

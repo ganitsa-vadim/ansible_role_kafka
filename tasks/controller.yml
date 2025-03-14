@@ -4,15 +4,15 @@
     path: "{{ kafka_controller_logs_dir }}"
     state: directory
     mode: '0750'
-    owner: kafka
-    group: kafka
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
 
 - name: Deploy Kafka controller confiration file
   template:
     src: controller.properties.j2
     dest: /etc/kafka/controller.properties
-    owner: root
-    group: kafka
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
     mode: '0640'
   notify: restart kafka controller
 
@@ -42,8 +42,8 @@
     path: "{{ kafka_controller_logs_dir }}"
     state: directory
     mode: '0750'
-    owner: kafka
-    group: kafka
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
     recurse: yes
 
 - name: Just force systemd to reread configs
@@ -55,3 +55,11 @@
     name: kafka-controller.service
     state: started
     enabled: true
+
+- name: kafka controller | Wait for service listening
+  ansible.builtin.wait_for:
+    host: "0.0.0.0"
+    port: "9093"
+    state: "started"
+    delay: 5
+    timeout: 300

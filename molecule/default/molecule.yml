@@ -2,8 +2,9 @@ dependency:
   name: galaxy
   options:
     requirements-file: requirements.yml
+
 platforms:
-  - name: kafka
+  - name: kafka01
     image: docker.io/geerlingguy/docker-ubuntu2004-ansible
     tmpfs:
       - /run
@@ -14,6 +15,46 @@ platforms:
       - SYS_ADMIN
     command: "/lib/systemd/systemd"
     pre_build_image: true
+
+    host_variables:
+    - kafka_node_ip: kafka01
+    - kafka_controller_node_id: 3001
+    - kafka_broker_node_id: 1001
+  
+  - name: kafka02
+    image: docker.io/geerlingguy/docker-ubuntu2004-ansible
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    capabilities:
+      - SYS_ADMIN
+    command: "/lib/systemd/systemd"
+    pre_build_image: true
+
+    host_variables:
+    - kafka_node_ip: kafka02
+    - kafka_controller_node_id: 3002
+    - kafka_broker_node_id: 1002
+  
+  - name: kafka03
+    image: docker.io/geerlingguy/docker-ubuntu2004-ansible
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    capabilities:
+      - SYS_ADMIN
+    command: "/lib/systemd/systemd"
+    pre_build_image: true
+
+    host_variables:
+    - kafka_node_ip: kafka03
+    - kafka_controller_node_id: 3003
+    - kafka_broker_node_id: 1003
+
 driver:
   options:
     managed: false

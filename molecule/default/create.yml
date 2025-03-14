@@ -1,6 +1,8 @@
 - name: Create
   hosts: localhost
   gather_facts: false
+  vars_files:
+    - vars.yml
   vars:
     molecule_inventory:
       all:
@@ -10,6 +12,10 @@
             hosts: {}
 
   tasks:
+    - name: Create podman network for kafka
+      containers.podman.podman_network:
+        name: "{{ molecule_podman_network }}"
+    
     - name: Create a container
       containers.podman.podman_container:
         name: "{{ item.name }}"
@@ -22,6 +28,7 @@
         command: "{{ item.command | default('sleep 1d') }}"
         # bash -c "while true; do sleep 10000; done"
         log_driver: json-file
+        network: "{{ molecule_podman_network }}"
       register: result
       loop: "{{ molecule_yml.platforms }}"
 
@@ -41,6 +48,8 @@
 
     - name: Add container to molecule_inventory
       vars:
+        merged_host_vars: "{{ item.host_variables | map('dict2items') | sum(start=[]) | items2dict }}"
+        host_vars_yaml: "{{ merged_host_vars | to_nice_yaml(indent=8) | indent(10) }}"
         inventory_partial_yaml: |
           all:
             children:
@@ -48,6 +57,7 @@
                 hosts:
                   "{{ item.name }}":
                     ansible_connection: containers.podman.podman
+                    {{ host_vars_yaml }}
       ansible.builtin.set_fact:
         molecule_inventory: >
           {{ molecule_inventory | combine(inventory_partial_yaml | from_yaml, recursive=true) }}
@@ -60,6 +70,13 @@
         content: |
           {{ molecule_inventory | to_yaml }}
         dest: "{{ molecule_ephemeral_directory }}/inventory/molecule_inventory.yml"
+        mode: "0600"
+    
+    - name: Dump molecule_inventory
+      ansible.builtin.copy:
+        content: |
+          {{ molecule_inventory | to_yaml }}
+        dest: "/home/vadim/Desktop/ansible-roles/ansible_role_kafka/molecule/inventory/molecule_inventory.yml"
         mode: "0600"
 
     - name: Force inventory refresh
