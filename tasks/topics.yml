@@ -66,7 +66,7 @@
 - name: KAFKA | Alter kafka topics
   ansible.builtin.command: >
     {{ kafka_home_dir }}/bin/kafka-topics.sh
-    --zookeeper {{ kafka_zookeeper_hosts | join(',') }}
+    --bootstrap-server 0.0.0.0:9092
     --topic {{ item.name }}
     --partitions {{ item.partitions }}
     --alter
@@ -79,7 +79,7 @@
 - name: KAFKA | Remove kafka topics
   ansible.builtin.command: >
     {{ kafka_home_dir }}/bin/kafka-topics.sh
-    --zookeeper {{ kafka_zookeeper_hosts | join(',') }}
+    --bootstrap-server 0.0.0.0:9092
     --topic {{ item }}
     --delete
     --if-exists
@@ -89,6 +89,7 @@
   when: kafka_delete_topic_enable == 'true'
   register: cmd_output
   changed_when: cmd_output.rc != 0
+  run_once: true
 
 - name: KAFKA | Configure kafka topics
   ansible.builtin.include_tasks: topic_config.yml
